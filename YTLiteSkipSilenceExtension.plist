@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    YTLite Extension Descriptor
+
+    YTLite scans installed tweaks for this descriptor at runtime to register
+    them as first-class extensions. The descriptor exposes:
+      - the extension's display name and bundle id
+      - the principal Objective-C class that conforms to YTLiteExtensionProtocol
+      - the settings panel class that YTLite will instantiate inside its own
+        settings view controller
+      - the version + minimum YTLite runtime version
+-->
+<plist version="1.0">
+<dict>
+    <key>YTLiteExtensionIdentifier</key>
+    <string>com.ytlite.skipsilence</string>
+
+    <key>YTLiteExtensionName</key>
+    <string>Skip Silence</string>
+
+    <key>YTLiteExtensionSubtitle</key>
+    <string>Smart Speed &amp; Skip Silences — ported from Overcast</string>
+
+    <key>YTLiteExtensionVersion</key>
+    <string>1.0.0</string>
+
+    <key>YTLiteExtensionMinimumRuntimeVersion</key>
+    <string>5.0</string>
+
+    <key>YTLiteExtensionPrincipalClass</key>
+    <string>OCSkipSilenceEngine</string>
+
+    <key>YTLiteExtensionSettingsClass</key>
+    <string>OCSkipSilenceSettingsController</string>
+
+    <key>YTLiteExtensionSettingsIcon</key>
+    <string>forward.fill</string>
+
+    <key>YTLiteExtensionSettingsIconColor</key>
+    <string>#FF3B30</string>
+
+    <key>YTLiteExtensionCategory</key>
+    <string>Playback</string>
+
+    <key>YTLiteExtensionDefaultEnabled</key>
+    <true/>
+</dict>
+</plist>

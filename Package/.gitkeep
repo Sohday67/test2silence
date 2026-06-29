@@ -1,0 +1,2 @@
+# Theos build output directory.
+# Build artifacts (.dylib, .deb) go here. They are .gitignored.

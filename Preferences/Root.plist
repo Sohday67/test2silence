@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    PreferenceLoader-compatible settings bundle. Loaded into Settings.app
+    under:  Settings > YTLiteSkipSilence
+
+    This is the fallback UI when YTLite isn't installed; YTLite itself ships
+    with its own settings panel that calls into the same NSUserDefaults suite.
+-->
+<plist version="1.0">
+<dict>
+    <key>title</key>
+    <string>YTLiteSkipSilence</string>
+    <key>items</key>
+    <array>
+
+        <!-- Master switch -->
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>cellClass</key>
+            <string>PSSwitchTableCell</string>
+            <key>default</key>
+            <true/>
+            <key>defaults</key>
+            <string>com.ytlite.skipsilence</string>
+            <key>key</key>
+            <string>OCSSEnabled</string>
+            <key>label</key>
+            <string>Enabled</string>
+            <key>PostNotification</key>
+            <string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict><key>cell</key><string>PSGroupCell</string>
+              <key>label</key><string>Skip Silence</string></dict>
+
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>default</key><true/>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSSkipSilences</string>
+            <key>label</key><string>Skip Silence (jump past)</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>default</key><false/>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSUseSmartSpeed</string>
+            <key>label</key><string>Smart Speed (faster)</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>default</key><true/>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSUseSmartSpeedMusicDetection</string>
+            <key>label</key><string>Music Detection (bypass)</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict><key>cell</key><string>PSGroupCell</string>
+              <key>label</key><string>Tuning</string></dict>
+
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>default</key><real>-40</real>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSSilenceThresholdDBFS</string>
+            <key>min</key><real>-60</real>
+            <key>max</key><real>-20</real>
+            <key>isContinuous</key><false/>
+            <key>showValue</key><true/>
+            <key>label</key><string>Silence Threshold (dBFS)</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>default</key><real>0.5</real>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSMinimumSilenceDuration</string>
+            <key>min</key><real>0.1</real>
+            <key>max</key><real>2.0</real>
+            <key>showValue</key><true/>
+            <key>label</key><string>Minimum Silence (s)</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>default</key><real>2.0</real>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSSilenceSkippingSpeed</string>
+            <key>min</key><real>1.25</real>
+            <key>max</key><real>3.0</real>
+            <key>showValue</key><true/>
+            <key>label</key><string>Silence Skipping Speed</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict><key>cell</key><string>PSGroupCell</string>
+              <key>label</key><string>Voice Boost (optional)</string></dict>
+
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>default</key><false/>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSUseVoiceBoost</string>
+            <key>label</key><string>Voice Boost</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>default</key><true/>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSStandardVoiceBoostConfiguration</string>
+            <key>label</key><string>Standard Preset</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict><key>cell</key><string>PSGroupCell</string>
+              <key>label</key><string>UI &amp; Debug</string></dict>
+
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>default</key><true/>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSShowTimeSavedHUD</string>
+            <key>label</key><string>Show Time-Saved HUD</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>default</key><false/>
+            <key>defaults</key><string>com.ytlite.skipsilence</string>
+            <key>key</key><string>OCSSVerboseLogging</string>
+            <key>label</key><string>Verbose Logging</string>
+            <key>PostNotification</key><string>com.ytlite.skipsilence/ReloadSettings</string>
+        </dict>
+
+    </array>
+</dict>
+</plist>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF3B30"/>
+      <stop offset="1" stop-color="#BF2117"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <!-- forward-skip icon -->
+  <g fill="#FFFFFF">
+    <path d="M 270 290 L 540 512 L 270 734 Z"/>
+    <path d="M 540 290 L 810 512 L 540 734 Z"/>
+    <!-- vertical "silence" line under the icon -->
+    <rect x="490" y="780" width="44" height="80" rx="10"/>
+    <rect x="600" y="780" width="44" height="80" rx="10"/>
+  </g>
+</svg>

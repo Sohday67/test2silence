@@ -1,0 +1,13 @@
+Package: com.ytlite.skipsilence
+Name: YTLiteSkipSilence
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Skip Silence extension for YTLite — ports Overcast's OCAudio silence-skipping engine (Smart Speed + Skip Silences) to YouTube playback.
+Maintainer: YTLiteSkipSilence Contributors
+Author: YTLiteSkipSilence Contributors
+Section: Tweaks
+Depends: mobilesubstrate, firmware (>= 14.0), com.dayanch9.ytlite (>= 5.0) | com.google.ios.youtube
+Conflicts: com.cercube.skipsilence
+Replaces: com.cercube.skipsilence
+Homepage: https://github.com/dayanch96/YTLite
+Tag: role::developer, works-with::audio

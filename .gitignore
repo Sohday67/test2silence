@@ -1,0 +1,28 @@
+# Theos build artifacts
+.theos/
+obj/
+packages/
+*.deb
+*.dylib
+*.plist.swp
+
+# Build output
+build/
+Package/*
+!Package/.gitkeep
+
+# Editor / OS junk
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# CococaPods / SPM (not used here, but defensive)
+Pods/
+.build/
+Package.resolved
+
+# Localization tooling
+*.strings.orig

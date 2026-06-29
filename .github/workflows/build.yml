@@ -1,0 +1,42 @@
+# CI: Build the YTLiteSkipSilence .deb on push / PR.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Theos
+        run: |
+          brew install ldid xz make
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          echo "$HOME/theos/bin" >> $GITHUB_PATH
+
+      - name: Setup Theos SDK
+        run: |
+          mkdir -p ~/theos/sdks
+          curl -L "https://github.com/theos/sdks/archive/master.tar.gz" | tar -xz -C /tmp
+          cp -R /tmp/sdks-master/iPhoneOS16.5.sdk ~/theos/sdks/ || true
+
+      - name: Build
+        env:
+          THEOS: /Users/runner/theos
+        run: make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: YTLiteSkipSilence-deb
+          path: |
+            packages/*.deb
+            packages/*.plist
