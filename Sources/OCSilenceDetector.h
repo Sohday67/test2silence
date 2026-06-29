@@ -61,6 +61,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, weak) id<OCSilenceDetectorDelegate> delegate;
 
+// Rolling list of detected silence regions (most recent at end). Capped at
+// 256 entries. Used by OCSkipSilenceEngine to find the nearest silence when
+// the user calls seekToNearestSilence... selectors.
+@property (nonatomic, readonly) NSArray<OCSilenceRegion *> *recentRegions;
+
 - (instancetype)initWithSampleRate:(float)sampleRate channels:(NSUInteger)channels;
 
 // Push a buffer of PCM audio into the detector. This is the entry point used

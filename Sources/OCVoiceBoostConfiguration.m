@@ -28,6 +28,15 @@
                            isStandardPreset:NO];
 }
 
+// Override NSObject's designated initializer.
+- (instancetype)init {
+    return [self initWithTargetLUFS:-16
+                compressorThreshold:-24.0f
+                   deEsserThreshold:-30.0f
+                         masterGain:3.0f
+                  isStandardPreset:YES];
+}
+
 - (instancetype)initWithTargetLUFS:(NSInteger)lufs
                 compressorThreshold:(float)compressor
                    deEsserThreshold:(float)deEsser
@@ -81,12 +90,12 @@
     hp.bypass       = NO;
 
     // Compressor configuration from Overcast defaults.
-    AudioUnitParameterSet(compressor.audioUnit, kAudioUnitScope_Global, 0,
-                          kDynamicsProcessorParamThreshold, _compressorThreshold);
-    AudioUnitParameterSet(compressor.audioUnit, kAudioUnitScope_Global, 0,
-                          kDynamicsProcessorParamAttack, 0.005);
-    AudioUnitParameterSet(compressor.audioUnit, kAudioUnitScope_Global, 0,
-                          kDynamicsProcessorParamRelease, 0.05);
+    AudioUnitSetParameter(compressor.audioUnit, kDynamicsProcessorParam_Threshold,
+                          kAudioUnitScope_Global, 0, _compressorThreshold, 0);
+    AudioUnitSetParameter(compressor.audioUnit, kDynamicsProcessorParam_AttackTime,
+                          kAudioUnitScope_Global, 0, 0.005, 0);
+    AudioUnitSetParameter(compressor.audioUnit, kDynamicsProcessorParam_ReleaseTime,
+                          kAudioUnitScope_Global, 0, 0.05, 0);
 
     // Master gain.
     AVAudioUnitEQFilterParameters *mg = masterEQ.bands[0];

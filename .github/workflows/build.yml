@@ -1,4 +1,8 @@
 # CI: Build the YTLiteSkipSilence .deb on push / PR.
+#
+# Builds against the public iPhoneOS16.5.sdk using Theos + clang + lld.
+# Produces a rootless .deb targeting arm64 (works on arm64e devices via
+# MobileSubstrate's arm64e-compat shim).
 name: Build
 
 on:
@@ -25,18 +29,19 @@ jobs:
       - name: Setup Theos SDK
         run: |
           mkdir -p ~/theos/sdks
-          curl -L "https://github.com/theos/sdks/archive/master.tar.gz" | tar -xz -C /tmp
-          cp -R /tmp/sdks-master/iPhoneOS16.5.sdk ~/theos/sdks/ || true
+          git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
+          cp -R /tmp/sdks/iPhoneOS16.5.sdk ~/theos/sdks/
 
-      - name: Build
+      - name: Build .deb
         env:
           THEOS: /Users/runner/theos
         run: make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
-      - name: Upload artifacts
+      - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: YTLiteSkipSilence-deb
           path: |
             packages/*.deb
             packages/*.plist
+

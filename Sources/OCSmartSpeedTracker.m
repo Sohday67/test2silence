@@ -10,10 +10,13 @@
 NSNotificationName const OCSmartSpeedBypassDidChangeNotification  = @"OCSmartSpeedBypassDidChange";
 NSNotificationName const OCSmartSpeedSavingsDidChangeNotification = @"OCSmartSpeedSavingsDidChange";
 
-static const NSUInteger kOCSTimelineBuckets = 256; // matches Overcast's `[256{?="timelineSilenceSkippedSamples"q}]`
+// Match Overcast's `[256{?="timelineSilenceSkippedSamples"q}]` array.
+#define kOCSTimelineBuckets 256
 
-@interface OCSmartSpeedTracker ()
-@property (nonatomic, assign) int64_t timelineSamples[kOCSTimelineBuckets];
+@interface OCSmartSpeedTracker () {
+    @public
+    int64_t _timelineSamples[kOCSTimelineBuckets];
+}
 @property (nonatomic, assign) NSUInteger writeHead;
 @property (nonatomic, assign) BOOL isSmartSpeedBypassed;
 @property (nonatomic, strong) NSTimer *flushTimer;

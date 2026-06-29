@@ -6,7 +6,7 @@ Description: Skip Silence extension for YTLite — ports Overcast's OCAudio sile
 Maintainer: YTLiteSkipSilence Contributors
 Author: YTLiteSkipSilence Contributors
 Section: Tweaks
-Depends: mobilesubstrate, firmware (>= 14.0), com.dayanch9.ytlite (>= 5.0) | com.google.ios.youtube
+Depends: mobilesubstrate, firmware (>= 15.0), com.dayanch9.ytlite (>= 5.0) | com.google.ios.youtube
 Conflicts: com.cercube.skipsilence
 Replaces: com.cercube.skipsilence
 Homepage: https://github.com/dayanch96/YTLite

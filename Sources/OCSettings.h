@@ -44,6 +44,10 @@ extern NSString * const OCSettingsKeyVerboseLogging;
 
 + (instancetype)shared;
 
+// Underlying NSUserDefaults (suite: com.ytlite.skipsilence). Exposed so the
+// settings UI and Logos hooks can read/write raw keys directly.
+@property (nonatomic, readonly, strong) NSUserDefaults *defaults;
+
 // Master switch — does the extension do anything at all?
 @property (nonatomic, assign) BOOL enabled;
 

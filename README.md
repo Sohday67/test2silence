@@ -4,9 +4,10 @@
 > audio engines to YouTube playback on iOS.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Platform: iOS 14+](https://img.shields.io/badge/Platform-iOS%2014%2B-blue.svg)](https://developer.apple.com/ios/)
-[![Arch: arm64 / arm64e](https://img.shields.io/badge/Arch-arm64%20%7C%20arm64e-lightgrey.svg)](#)
+[![Platform: iOS 15+](https://img.shields.io/badge/Platform-iOS%2015%2B-blue.svg)](https://developer.apple.com/ios/)
+[![Arch: arm64](https://img.shields.io/badge/Arch-arm64-lightgrey.svg)](#)
 [![Theos](https://img.shields.io/badge/Built%20with-Theos-orange.svg)](https://theos.dev)
+[![Build](https://github.com/Sohday67/test2silence/actions/workflows/build.yml/badge.svg)](https://github.com/Sohday67/test2silence/actions/workflows/build.yml)
 
 ---
 
@@ -55,9 +56,10 @@ class-by-class porting table.
 
 | Tool / Runtime | Version |
 |---|---|
-| iOS | 14.0 or newer |
-| Architecture | arm64 / arm64e (rootless) |
+| iOS | 15.0 or newer (required for `SNClassifierIdentifierVersion1`) |
+| Architecture | arm64 (works on arm64e devices via MobileSubstrate's compat shim) |
 | [Theos](https://theos.dev) | latest |
+| iPhone SDK | iPhoneOS16.5.sdk (from [theos/sdks](https://github.com/theos/sdks)) |
 | YouTube | any version compatible with [YTLite](https://github.com/dayanch96/YTLite) 5.0+ |
 | YTLite | 5.0 or newer (optional — without it, only the Settings.app panel works) |
 | jailbreak | Dopamine / Palera1n / Serotonin (rootless) |
@@ -66,21 +68,25 @@ class-by-class porting table.
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-fork/YTLiteSkipSilence.git
-cd YTLiteSkipSilence
+git clone https://github.com/Sohday67/test2silence.git
+cd test2silence
 
 # 2. Make sure Theos is set up
 export THEOS=~/theos
 git clone --recursive https://github.com/theos/theos.git $THEOS
 
-# 3. Build
-make package FINALPACKAGE=1
+# 3. Install the iPhone SDK
+git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
+cp -R /tmp/sdks/iPhoneOS16.5.sdk $THEOS/sdks/
 
-# 4. Install (via SSH to your jailbroken device)
+# 4. Build the .deb
+make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+
+# 5. Install (via SSH to your jailbroken device)
 make install
 ```
 
-The build produces `packages/com.ytlite.skipsilence_1.0.0_iphoneos-arm.deb`.
+The build produces `packages/com.ytlite.skipsilence_1.0.0_iphoneos-arm64.deb`.
 
 ## Installation
 

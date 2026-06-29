@@ -34,7 +34,7 @@ NSString * const OCSettingsKeyShowTimeSavedHUD                     = @"OCSSShowT
 NSString * const OCSettingsKeyVerboseLogging                       = @"OCSSVerboseLogging";
 
 @interface OCSettings ()
-@property (nonatomic, strong) NSUserDefaults *defaults;
+@property (nonatomic, readwrite, strong) NSUserDefaults *defaults;
 @end
 
 @implementation OCSettings
@@ -51,7 +51,7 @@ NSString * const OCSettingsKeyVerboseLogging                       = @"OCSSVerbo
         // while staying readable from the settings tweak.
         _defaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.ytlite.skipsilence"];
         [self registerDefaults];
-        OCLogVerboseEnabled = [self.verboseLogging boolValue] ? YES : NO;
+        OCLogVerboseEnabled = self.verboseLogging;
     }
     return self;
 }
@@ -79,39 +79,69 @@ NSString * const OCSettingsKeyVerboseLogging                       = @"OCSSVerbo
     [_defaults registerDefaults:d];
 }
 
-#define PROP_GETSET(name, key, type, getter) \
-    - (type)name { return [_defaults getter]; } \
-    - (void)set##name:(type)v { [_defaults set##name:v forKey:key]; }
+#pragma mark - BOOL properties
 
-PROP_GETSET(enabled,                          OCSettingsKeyEnabled,                          BOOL,           boolForKey:)
-PROP_GETSET(skipSilences,                     OCSettingsKeySkipSilences,                     BOOL,           boolForKey:)
-PROP_GETSET(useSmartSpeed,                    OCSettingsKeyUseSmartSpeed,                    BOOL,           boolForKey:)
-PROP_GETSET(useSmartSpeedMusicDetection,      OCSettingsKeyUseSmartSpeedMusicDetection,      BOOL,           boolForKey:)
-PROP_GETSET(useVoiceBoost,                    OCSettingsKeyUseVoiceBoost,                    BOOL,           boolForKey:)
-PROP_GETSET(standardVoiceBoostConfiguration,  OCSettingsKeyStandardVoiceBoostConfiguration,  BOOL,           boolForKey:)
-PROP_GETSET(showTimeSavedHUD,                 OCSettingsKeyShowTimeSavedHUD,                 BOOL,           boolForKey:)
-PROP_GETSET(verboseLogging,                   OCSettingsKeyVerboseLogging,                   BOOL,           boolForKey:)
-PROP_GETSET(silenceThresholdDBFS,             OCSettingsKeySilenceThresholdDBFS,             float,          floatForKey:)
-PROP_GETSET(minimumSilenceDuration,           OCSettingsKeyMinimumSilenceDuration,           NSTimeInterval, doubleForKey:)
-PROP_GETSET(silenceSkippingSpeed,             OCSettingsKeySilenceSkippingSpeed,             float,          floatForKey:)
-PROP_GETSET(baselineSpeed,                    OCSettingsKeyBaselineSpeed,                    float,          floatForKey:)
-PROP_GETSET(voiceBoostCompressorThreshold,    OCSettingsKeyVoiceBoostCompressorThreshold,    float,          floatForKey:)
-PROP_GETSET(voiceBoostDeEsserThreshold,       OCSettingsKeyVoiceBoostDeEsserThreshold,       float,          floatForKey:)
-PROP_GETSET(voiceBoostTargetLUFS,             OCSettingsKeyVoiceBoostTargetLUFS,             NSInteger,      integerForKey:)
+- (BOOL)enabled { return [_defaults boolForKey:OCSettingsKeyEnabled]; }
+- (void)setEnabled:(BOOL)v { [_defaults setBool:v forKey:OCSettingsKeyEnabled]; }
 
-- (NSTimeInterval)smartSpeedTotalSavings {
-    return [_defaults doubleForKey:OCSettingsKeySmartSpeedTotalSavings];
-}
-- (void)setSmartSpeedTotalSavings:(NSTimeInterval)v {
-    [_defaults setDouble:v forKey:OCSettingsKeySmartSpeedTotalSavings];
+- (BOOL)skipSilences { return [_defaults boolForKey:OCSettingsKeySkipSilences]; }
+- (void)setSkipSilences:(BOOL)v { [_defaults setBool:v forKey:OCSettingsKeySkipSilences]; }
+
+- (BOOL)useSmartSpeed { return [_defaults boolForKey:OCSettingsKeyUseSmartSpeed]; }
+- (void)setUseSmartSpeed:(BOOL)v { [_defaults setBool:v forKey:OCSettingsKeyUseSmartSpeed]; }
+
+- (BOOL)useSmartSpeedMusicDetection { return [_defaults boolForKey:OCSettingsKeyUseSmartSpeedMusicDetection]; }
+- (void)setUseSmartSpeedMusicDetection:(BOOL)v { [_defaults setBool:v forKey:OCSettingsKeyUseSmartSpeedMusicDetection]; }
+
+- (BOOL)useVoiceBoost { return [_defaults boolForKey:OCSettingsKeyUseVoiceBoost]; }
+- (void)setUseVoiceBoost:(BOOL)v { [_defaults setBool:v forKey:OCSettingsKeyUseVoiceBoost]; }
+
+- (BOOL)standardVoiceBoostConfiguration { return [_defaults boolForKey:OCSettingsKeyStandardVoiceBoostConfiguration]; }
+- (void)setStandardVoiceBoostConfiguration:(BOOL)v { [_defaults setBool:v forKey:OCSettingsKeyStandardVoiceBoostConfiguration]; }
+
+- (BOOL)showTimeSavedHUD { return [_defaults boolForKey:OCSettingsKeyShowTimeSavedHUD]; }
+- (void)setShowTimeSavedHUD:(BOOL)v { [_defaults setBool:v forKey:OCSettingsKeyShowTimeSavedHUD]; }
+
+- (BOOL)verboseLogging { return [_defaults boolForKey:OCSettingsKeyVerboseLogging]; }
+- (void)setVerboseLogging:(BOOL)v {
+    [_defaults setBool:v forKey:OCSettingsKeyVerboseLogging];
+    OCLogVerboseEnabled = v;
 }
 
-- (NSTimeInterval)smartSpeedSavingsSinceLastSync {
-    return [_defaults doubleForKey:OCSettingsKeySmartSpeedSavingsSinceLastSync];
-}
-- (void)setSmartSpeedSavingsSinceLastSync:(NSTimeInterval)v {
-    [_defaults setDouble:v forKey:OCSettingsKeySmartSpeedSavingsSinceLastSync];
-}
+#pragma mark - float properties
+
+- (float)silenceThresholdDBFS { return [_defaults floatForKey:OCSettingsKeySilenceThresholdDBFS]; }
+- (void)setSilenceThresholdDBFS:(float)v { [_defaults setFloat:v forKey:OCSettingsKeySilenceThresholdDBFS]; }
+
+- (float)silenceSkippingSpeed { return [_defaults floatForKey:OCSettingsKeySilenceSkippingSpeed]; }
+- (void)setSilenceSkippingSpeed:(float)v { [_defaults setFloat:v forKey:OCSettingsKeySilenceSkippingSpeed]; }
+
+- (float)baselineSpeed { return [_defaults floatForKey:OCSettingsKeyBaselineSpeed]; }
+- (void)setBaselineSpeed:(float)v { [_defaults setFloat:v forKey:OCSettingsKeyBaselineSpeed]; }
+
+- (float)voiceBoostCompressorThreshold { return [_defaults floatForKey:OCSettingsKeyVoiceBoostCompressorThreshold]; }
+- (void)setVoiceBoostCompressorThreshold:(float)v { [_defaults setFloat:v forKey:OCSettingsKeyVoiceBoostCompressorThreshold]; }
+
+- (float)voiceBoostDeEsserThreshold { return [_defaults floatForKey:OCSettingsKeyVoiceBoostDeEsserThreshold]; }
+- (void)setVoiceBoostDeEsserThreshold:(float)v { [_defaults setFloat:v forKey:OCSettingsKeyVoiceBoostDeEsserThreshold]; }
+
+#pragma mark - NSTimeInterval properties
+
+- (NSTimeInterval)minimumSilenceDuration { return [_defaults doubleForKey:OCSettingsKeyMinimumSilenceDuration]; }
+- (void)setMinimumSilenceDuration:(NSTimeInterval)v { [_defaults setDouble:v forKey:OCSettingsKeyMinimumSilenceDuration]; }
+
+- (NSTimeInterval)smartSpeedTotalSavings { return [_defaults doubleForKey:OCSettingsKeySmartSpeedTotalSavings]; }
+- (void)setSmartSpeedTotalSavings:(NSTimeInterval)v { [_defaults setDouble:v forKey:OCSettingsKeySmartSpeedTotalSavings]; }
+
+- (NSTimeInterval)smartSpeedSavingsSinceLastSync { return [_defaults doubleForKey:OCSettingsKeySmartSpeedSavingsSinceLastSync]; }
+- (void)setSmartSpeedSavingsSinceLastSync:(NSTimeInterval)v { [_defaults setDouble:v forKey:OCSettingsKeySmartSpeedSavingsSinceLastSync]; }
+
+#pragma mark - NSInteger properties
+
+- (NSInteger)voiceBoostTargetLUFS { return [_defaults integerForKey:OCSettingsKeyVoiceBoostTargetLUFS]; }
+- (void)setVoiceBoostTargetLUFS:(NSInteger)v { [_defaults setInteger:v forKey:OCSettingsKeyVoiceBoostTargetLUFS]; }
+
+#pragma mark - Convenience
 
 - (BOOL)isFeatureActive {
     return self.enabled && (self.skipSilences || self.useSmartSpeed);

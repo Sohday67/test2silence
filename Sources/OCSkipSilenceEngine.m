@@ -25,35 +25,14 @@
 #import "OCSkipSilenceEngine.h"
 #import "OCSettings.h"
 #import "OCLog.h"
-#import <MediaToolbox/MediaToolbox.h>
+#import <MediaToolbox/MTAudioProcessingTap.h>
 #import <AVFAudio/AVFAudio.h>
 #import <CoreMedia/CoreMedia.h>
-
-// MTAudioProcessingTap private API (declared in MTAudioProcessingTapStubs.m)
-typedef struct OpaqueMTAudioProcessingTap *MTAudioProcessingTapRef;
-typedef enum {
-    kMTAudioProcessingTapCreationFlag_PreEffects   = 1u << 0,
-    kMTAudioProcessingTapCreationFlag_PostEffects  = 1u << 1,
-} MTAudioProcessingTapCreationFlags;
-
-typedef struct {
-    uint32_t version;
-    void *clientHandle;
-    void (*init)(void *, void *, CFTypeRef, void **);
-    void (*finalize)(void *);
-    void (*prepare)(void *, CMItemCount);
-    void (*unprepare)(void *);
-    void (*process)(void *, CMItemCount, MTAudioProcessingTapRef, CMItemCount,
-                    CMAudioBufferList *, CMTime *, CMTime *, void *);
-} OCTapCallbacks;
-
-extern OSStatus MTAudioProcessingTapCreate(CFAllocatorRef,
-                                           const OCTapCallbacks *,
-                                           MTAudioProcessingTapCreationFlags,
-                                           MTAudioProcessingTapRef *) __attribute__((weak_import));
+#import <CoreMedia/CMFormatDescription.h>
+#import <AudioToolbox/AudioToolbox.h>
 
 // ----------------------------------------------------------------------------
-//  Tap context — passed through `tapStorage` to the process callback.
+//  Tap context — passed via the callbacks struct's clientInfo pointer.
 // ----------------------------------------------------------------------------
 typedef struct {
     __unsafe_unretained OCSkipSilenceEngine *engine;
@@ -63,10 +42,10 @@ typedef struct {
 } OCTapContext;
 
 // ----------------------------------------------------------------------------
-//  PCM buffer builder — wraps a CMAudioBufferList into AVAudioPCMBuffer so
+//  PCM buffer builder — wraps an AudioBufferList into AVAudioPCMBuffer so
 //  the silence detector / classifier can process it with vDSP.
 // ----------------------------------------------------------------------------
-static AVAudioPCMBuffer *OCBuildPCMBuffer(const CMAudioBufferList *bl,
+static AVAudioPCMBuffer *OCBuildPCMBuffer(const AudioBufferList *bl,
                                           UInt32 frames,
                                           AVAudioFormat *format) {
     if (!bl || frames == 0 || !format) return nil;
@@ -77,48 +56,75 @@ static AVAudioPCMBuffer *OCBuildPCMBuffer(const CMAudioBufferList *bl,
     AudioBufferList dest = *buf.audioBufferList;
     for (UInt32 i = 0; i < bl->mNumberBuffers && i < dest.mNumberBuffers; i++) {
         size_t bytes = MIN(bl->mBuffers[i].mDataByteSize, dest.mBuffers[i].mDataByteSize);
-        memcpy(dest.mBuffers[i].mData, bl->mBuffers[i].mData, bytes);
+        if (bytes > 0 && bl->mBuffers[i].mData && dest.mBuffers[i].mData) {
+            memcpy(dest.mBuffers[i].mData, bl->mBuffers[i].mData, bytes);
+        }
     }
     return buf;
 }
 
 // ----------------------------------------------------------------------------
-//  Tap callbacks
+//  Forward declaration of the engine's internal method so the C callback
+//  below can call it. The full class extension follows the callbacks.
 // ----------------------------------------------------------------------------
-static void OCTapInit(void *client, void *storage, CFTypeRef fmtDesc, void **storageOut) {
-    // Nothing — context is allocated before MTAudioProcessingTapCreate and
-    // passed via clientHandle.
-    if (storageOut) *storageOut = storage;
+@interface OCSkipSilenceEngine (Internal)
+- (void)_processTapBufferList:(AudioBufferList *)bl
+                       frames:(UInt32)frames
+                         time:(CMTime)time
+                       format:(AVAudioFormat *)format;
+@end
+
+// ----------------------------------------------------------------------------
+//  Tap callbacks (public MTAudioProcessingTap API).
+// ----------------------------------------------------------------------------
+static void OCTapInit(MTAudioProcessingTapRef tap,
+                      void *clientInfo,
+                      void **tapStorageOut) {
+    if (tapStorageOut) *tapStorageOut = clientInfo;
 }
 
-static void OCTapFinalize(void *storage) {
+static void OCTapFinalize(MTAudioProcessingTapRef tap) {
     // Owned by the engine — do not free here.
 }
 
-static void OCTapPrepare(void *storage, CMItemCount maxFrames) {
+static void OCTapPrepare(MTAudioProcessingTapRef tap,
+                         CMItemCount maxFrames,
+                         const AudioStreamBasicDescription *processingFormat) {
+    void *storage = MTAudioProcessingTapGetStorage(tap);
     OCTapContext *c = (OCTapContext *)storage;
     if (c) c->maxFrames = maxFrames;
 }
 
-static void OCTapUnprepare(void *storage) {
+static void OCTapUnprepare(MTAudioProcessingTapRef tap) {
+    void *storage = MTAudioProcessingTapGetStorage(tap);
     OCTapContext *c = (OCTapContext *)storage;
     if (c) c->maxFrames = 0;
 }
 
-static void OCTapProcess(void *storage, CMItemCount nFrames,
-                         MTAudioProcessingTapRef tap,
-                         CMItemCount nFramesOut,
-                         CMAudioBufferList *blInOut,
-                         CMTime *timeIn,
-                         CMTime *timeOut,
-                         void *refCon) {
+static void OCTapProcess(MTAudioProcessingTapRef tap,
+                         CMItemCount numberFrames,
+                         MTAudioProcessingTapFlags flags,
+                         AudioBufferList *bufferListInOut,
+                         CMItemCount *numberFramesOut,
+                         MTAudioProcessingTapFlags *flagsOut) {
+    void *storage = MTAudioProcessingTapGetStorage(tap);
     OCTapContext *c = (OCTapContext *)storage;
-    if (c && c->engine && nFrames > 0) {
+    if (c && c->engine && numberFrames > 0) {
         @autoreleasepool {
+            // Use the player's current time as the analysis timestamp.
+            CMTime time = kCMTimeZero;
+            AVPlayer *player = c->engine.player;
+            if (player) time = player.currentTime;
+
             OCSkipSilenceEngine *eng = c->engine;
-            [eng _processTapBufferList:blInOut frames:(UInt32)nFrames time:*timeIn format:c->format];
+            [eng _processTapBufferList:bufferListInOut
+                                frames:(UInt32)numberFrames
+                                  time:time
+                                format:c->format];
         }
     }
+    if (numberFramesOut) *numberFramesOut = numberFrames;
+    if (flagsOut) *flagsOut = flags;
 }
 
 // ----------------------------------------------------------------------------
@@ -242,6 +248,7 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
         // The tap is owned by the audioMix inputParameters. Clearing the mix
         // releases the tap.
         _playerItem.audioMix = nil;
+        CFRelease(_tap);
         _tap = NULL;
     }
     if (_tapContext) {
@@ -258,11 +265,6 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
 }
 
 - (void)installAudioTap {
-    if (!MTAudioProcessingTapCreate) {
-        OCLogE(Audio, @"MTAudioProcessingTapCreate unavailable — silence detection disabled");
-        return;
-    }
-
     AVAssetTrack *audioTrack = [self audioTrackForItem:_playerItem];
     if (!audioTrack) {
         OCLogW(Audio, @"no audio track found — cannot install tap");
@@ -271,12 +273,16 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
 
     // Build the audio format from the track's format description.
     CMAudioFormatDescriptionRef fmtDesc = NULL;
-    if (CMTimedAudioFormatDescriptionRef td = (__bridge CMTimedAudioFormatDescriptionRef)[audioTrack.formatDescriptions firstObject]) {
-        fmtDesc = (CMAudioFormatDescriptionRef)td;
+    NSArray *formatDescriptions = audioTrack.formatDescriptions;
+    if (formatDescriptions.count > 0) {
+        CMAudioFormatDescriptionRef firstDesc =
+            (__bridge CMAudioFormatDescriptionRef)formatDescriptions[0];
+        fmtDesc = firstDesc;
     }
     AudioStreamBasicDescription asbd = {0};
     if (fmtDesc) {
-        const AudioStreamBasicDescription *src = CMAudioFormatDescriptionGetStreamDescription(fmtDesc);
+        const AudioStreamBasicDescription *src =
+            CMAudioFormatDescriptionGetStreamBasicDescription(fmtDesc);
         if (src) asbd = *src;
     }
     if (asbd.mSampleRate == 0) {
@@ -297,14 +303,15 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
     c->format = _tapFormat;
     _tapContext = c;
 
-    OCTapCallbacks cbs = {0};
-    cbs.version   = 0;
-    cbs.clientHandle = c;
-    cbs.init      = OCTapInit;
-    cbs.finalize  = OCTapFinalize;
-    cbs.prepare   = OCTapPrepare;
-    cbs.unprepare = OCTapUnprepare;
-    cbs.process   = OCTapProcess;
+    MTAudioProcessingTapCallbacks cbs = {
+        .version   = kMTAudioProcessingTapCallbacksVersion_0,
+        .clientInfo = c,
+        .init      = OCTapInit,
+        .finalize  = OCTapFinalize,
+        .prepare   = OCTapPrepare,
+        .unprepare = OCTapUnprepare,
+        .process   = OCTapProcess,
+    };
 
     OSStatus err = MTAudioProcessingTapCreate(NULL, &cbs,
                                               kMTAudioProcessingTapCreationFlag_PreEffects,
@@ -317,7 +324,9 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
 
     AVMutableAudioMixInputParameters *p =
         [AVMutableAudioMixInputParameters audioMixInputParametersWithTrack:audioTrack];
-    p.audioTapProcessor = (__bridge void *)_tap;
+    // audioTapProcessor is a `void *` (a raw C pointer). MTAudioProcessingTapRef
+    // is itself a const pointer, so a plain C cast is correct.
+    p.audioTapProcessor = (void *)_tap;
     self.inputParams[@(audioTrack.trackID)] = p;
 
     AVMutableAudioMix *mix = [AVMutableAudioMix audioMix];
@@ -337,7 +346,7 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
 
 #pragma mark - Tap processing (called on the audio render thread)
 
-- (void)_processTapBufferList:(CMAudioBufferList *)bl
+- (void)_processTapBufferList:(AudioBufferList *)bl
                        frames:(UInt32)frames
                          time:(CMTime)time
                        format:(AVAudioFormat *)format {
@@ -347,7 +356,7 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
     if (!buf) return;
 
     // Update detector's sample rate if it changed.
-    if (fabsf(self.detector.sampleRate - format.sampleRate) > 0.1) {
+    if (fabs(self.detector.sampleRate - format.sampleRate) > 0.1) {
         self.detector.sampleRate = format.sampleRate;
     }
     if (self.detector.channels != format.channelCount) {
@@ -385,10 +394,11 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
         // Skip Silences-only mode: if the region is long enough, seek forward.
         if (self.skipSilences && dur >= self.detector.minimumSilenceDuration) {
             CMTime target = CMTimeAdd(endTime, CMTimeMakeWithSeconds(self.detector.lookaheadBuffer, 600));
+            CMTime start = self.smartSpeedBoostStart;
             [_player seekToTime:target toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero
                   completionHandler:^(BOOL finished) {
                 if (finished) {
-                    [self.tracker recordSkippedInterval:self.smartSpeedBoostStart
+                    [self.tracker recordSkippedInterval:start
                                                       to:target
                                             baselineRate:self.baselineSpeed.rate];
                 }
@@ -454,9 +464,9 @@ static void OCTapProcess(void *storage, CMItemCount nFrames,
     return YES;
 }
 
-- (nullable CMTime)timestampOfNearestSilenceBetweenStartTime:(CMTime)startTime
-                                                      endTime:(CMTime)endTime
-                                              silenceThreshold:(float)thresholdDBFS {
+- (CMTime)timestampOfNearestSilenceBetweenStartTime:(CMTime)startTime
+                                            endTime:(CMTime)endTime
+                                    silenceThreshold:(float)thresholdDBFS {
     float oldThreshold = self.detector.silenceThresholdDBFS;
     self.detector.silenceThresholdDBFS = thresholdDBFS;
     OCSilenceRegion *r = [self.detector findNearestSilenceInRegions:self.detector.recentRegions

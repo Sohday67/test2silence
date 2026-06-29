@@ -110,9 +110,10 @@ NS_ASSUME_NONNULL_BEGIN
                                          threshold:(float)thresholdDBFS;
 
 // Mirrors -[OCAudioPlayer timestampOfNearestSilenceBetweenStartTime:endTime:silenceThreshold:]
-- (nullable CMTime)timestampOfNearestSilenceBetweenStartTime:(CMTime)startTime
-                                                      endTime:(CMTime)endTime
-                                              silenceThreshold:(float)thresholdDBFS;
+// Returns kCMTimeInvalid if no silence region is found.
+- (CMTime)timestampOfNearestSilenceBetweenStartTime:(CMTime)startTime
+                                            endTime:(CMTime)endTime
+                                    silenceThreshold:(float)thresholdDBFS;
 
 // Mirrors -[OCAudioPlayer seekToNearestSilenceBetweenStartTime:endTime:]
 - (BOOL)seekToNearestSilenceBetweenStartTime:(CMTime)startTime endTime:(CMTime)endTime;

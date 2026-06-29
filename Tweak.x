@@ -22,13 +22,25 @@
 #import <UIKit/UIKit.h>
 #import "OCHeaders.h"
 
-// ----------------------------------------------------------------------------
-//  YouTube class forward declarations. These resolve at runtime via the Logos
-//  %hook mechanism; if the class doesn't exist (older YouTube), the hook is
-//  silently skipped.
-// ----------------------------------------------------------------------------
-@class YTPlayerView, YTInlinePlayerBarView, MLPlaybackController,
-       YTSettingsViewController, YTSettingsCell, YTLiteRootSettingsController;
+// ---------------------------------------------------------------------------
+//  YouTube class declarations.
+//
+//  We declare each hooked class as a subclass of the appropriate UIKit base
+//  class. This lets clang type-check message sends and property accesses
+//  without needing the full YouTube class headers. At runtime the Logos
+//  %hook macro will re-declare these and attach the real class.
+// ---------------------------------------------------------------------------
+@interface YTPlayerView : UIView @end
+@interface YTInlinePlayerBarView : UIView @end
+@interface MLPlaybackController : NSObject @end
+
+// Settings — declare as UITableViewController so we can use self.tableView
+// and self.navigationController.
+@interface YTSettingsViewController : UITableViewController @end
+@interface YTLiteRootSettingsController : UITableViewController
+// YTLite exposes its settings model via this selector.
+- (NSMutableArray<NSDictionary *> *)settings;
+@end
 
 // ============================================================================
 //  1. Bootstrap — ctor runs at dylib load time.
@@ -39,7 +51,7 @@ static void OCBootstrap(void) {
         // Force settings to register defaults.
         [[OCSettings shared] synchronize];
         [[OCSkipSilenceEngine shared] reloadSettings];
-        OCLogI(General, @"YTLiteSkipSilence %s loaded", YTLITE_SKIP_SILENCE_VERSION);
+        OCLogI(General, @"YTLiteSkipSilence %@ loaded", YTLITE_SKIP_SILENCE_VERSION);
     }
 }
 

@@ -18,6 +18,11 @@ static const float kOCSpeedMax = 3.0f;
     return [[self alloc] initWithRate:rate];
 }
 
+// Override NSObject's designated initializer to delegate to ours.
+- (instancetype)init {
+    return [self initWithRate:1.0f];
+}
+
 - (instancetype)initWithRate:(float)rate {
     if ((self = [super init])) {
         _rate = rate;
